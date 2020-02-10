@@ -2,32 +2,38 @@ use std::io::{stdin, Read};
 
 #[derive(Debug)]
 struct Program {
-    ints: Vec<u32>,
-    base: usize,
+    memory: Vec<u32>,
+    ip: usize,
 }
 
 impl Program {
+    fn new(int_list: &[u32]) -> Program {
+        Program {
+            memory: int_list.iter().cloned().collect(),
+            ip: 0
+        }
+    }
+
     fn operate(&mut self) -> bool {
-        dbg!(&self.base);
-        match self.ints[self.base] {
+        match self.memory[self.ip] {
             1 => {
-                let index1: usize = self.ints[self.base + 1] as usize;
-                let val1 = self.ints[index1];
-                let index2: usize = self.ints[self.base + 2] as usize;
-                let val2 = self.ints[index2];
-                let index3: usize = self.ints[self.base + 3] as usize;
-                self.ints[index3] = val1 + val2;
-                self.base = (self.base + 4) % self.ints.len();
+                let index1: usize = self.memory[self.ip + 1] as usize;
+                let val1 = self.memory[index1];
+                let index2: usize = self.memory[self.ip + 2] as usize;
+                let val2 = self.memory[index2];
+                let index3: usize = self.memory[self.ip + 3] as usize;
+                self.memory[index3] = val1 + val2;
+                self.ip = (self.ip + 4) % self.memory.len();
                 true
             },
             2 => {
-                let index1: usize = self.ints[self.base + 1] as usize;
-                let val1 = self.ints[index1];
-                let index2: usize = self.ints[self.base + 2] as usize;
-                let val2 = self.ints[index2];
-                let index3: usize = self.ints[self.base + 3] as usize;
-                self.ints[index3] = val1 * val2;
-                self.base = (self.base + 4) % self.ints.len();
+                let index1: usize = self.memory[self.ip + 1] as usize;
+                let val1 = self.memory[index1];
+                let index2: usize = self.memory[self.ip + 2] as usize;
+                let val2 = self.memory[index2];
+                let index3: usize = self.memory[self.ip + 3] as usize;
+                self.memory[index3] = val1 * val2;
+                self.ip = (self.ip + 4) % self.memory.len();
                 true
             },
             99 => {
@@ -44,19 +50,28 @@ fn main() {
     let mut input = String::new();
     stdin().read_to_string(&mut input).unwrap();
 
-    let ints: Vec<u32> = input
+    let int_list: Vec<u32> = input
         .split(",")
         .map(|x| x.trim().parse::<u32>().unwrap())
         .collect();
 
-    let mut program = Program { ints: ints, base: 0 };
+    // Part 1
+    let mut program_p1 = Program::new(&int_list);
+    program_p1.memory[1] = 12;
+    program_p1.memory[2] = 2;
+    while program_p1.operate() { }
+    println!("Part 1: the value at position 0 is {}", program_p1.memory[0]);
 
-    program.ints[1] = 12;
-    program.ints[2] = 2;
-
-    while program.operate() {
-        //println!("{:?}", program);
+    'outer: for noun in 0..=99 {
+        for verb in 0..=99 {
+            let mut program = Program::new(&int_list);
+            program.memory[1] = noun;
+            program.memory[2] = verb;
+            while program.operate() { }
+            if 19690720 == program.memory[0] {
+                println!("Part 2: 100 * noun + verb = {}", 100 * noun + verb);
+                break 'outer;
+            }
+        }
     }
-
-    println!("{:?}", program);
 }
