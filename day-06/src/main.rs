@@ -60,6 +60,32 @@ impl<'a> Solver<'a> {
     fn sum_orbit_counts(&self) -> u32 {
         self.orbit_counts.values().sum()
     }
+
+    fn calculate_transfers(&self, orbiter_1: &str, orbiter_2: &str) -> u32 {
+        let path_1 = self.get_path(orbiter_1);
+        let path_2 = self.get_path(orbiter_2);
+
+        let mut j = 0;
+        loop {
+            if path_1[j] != path_2[j] {
+                break;
+            }
+            j += 1;
+        }
+
+        (path_1.len() - 1 - j + path_2.len() - 1 - j) as u32
+    }
+
+    fn get_path(&self, mut orbiter: &'a str) -> Vec<&str> {
+        let mut path = vec![orbiter];
+
+        while let Some(parent) = self.child_parents.get(orbiter) {
+            path.push(parent);
+            orbiter = parent;
+        }
+
+        path.into_iter().rev().collect()
+    }
 }
 
 fn main() {
@@ -73,5 +99,10 @@ fn main() {
     println!(
         "Part 1: the total number of orbits is {}",
         solver.sum_orbit_counts()
+    );
+
+    println!(
+        "Part 2: the minimum tranfers requires is {}",
+        solver.calculate_transfers("YOU", "SAN")
     );
 }
