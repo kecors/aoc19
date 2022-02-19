@@ -79,10 +79,120 @@ impl Program {
             }
             4 => {
                 // Output
+                let parameter_1_mode = (self.memory[self.ip] / 100) & 1;
+
                 let parameter_1 = self.memory[self.ip + 1];
                 self.ip += 2;
 
-                println!("{}", self.memory[parameter_1 as usize]);
+                let value_1 = match parameter_1_mode {
+                    0 => self.memory[parameter_1 as usize],
+                    1 => parameter_1,
+                    _ => panic!("Unknown parameter mode {}", parameter_1_mode),
+                };
+
+                println!("{}", value_1);
+
+                true
+            }
+            5 => {
+                // Jump if true
+                let parameter_1_mode = (self.memory[self.ip] / 100) & 1;
+                let parameter_2_mode = (self.memory[self.ip] / 1000) & 1;
+
+                let parameter_1 = self.memory[self.ip + 1];
+                let parameter_2 = self.memory[self.ip + 2];
+                self.ip += 3;
+
+                let value_1 = match parameter_1_mode {
+                    0 => self.memory[parameter_1 as usize],
+                    1 => parameter_1,
+                    _ => panic!("Unknown parameter mode {}", parameter_1_mode),
+                };
+                let value_2 = match parameter_2_mode {
+                    0 => self.memory[parameter_2 as usize],
+                    1 => parameter_2,
+                    _ => panic!("Unknown parameter mode {}", parameter_2_mode),
+                };
+
+                if value_1 != 0 {
+                    self.ip = value_2 as usize;
+                }
+
+                true
+            }
+            6 => {
+                // Jump if false
+                let parameter_1_mode = (self.memory[self.ip] / 100) & 1;
+                let parameter_2_mode = (self.memory[self.ip] / 1000) & 1;
+
+                let parameter_1 = self.memory[self.ip + 1];
+                let parameter_2 = self.memory[self.ip + 2];
+                self.ip += 3;
+
+                let value_1 = match parameter_1_mode {
+                    0 => self.memory[parameter_1 as usize],
+                    1 => parameter_1,
+                    _ => panic!("Unknown parameter mode {}", parameter_1_mode),
+                };
+                let value_2 = match parameter_2_mode {
+                    0 => self.memory[parameter_2 as usize],
+                    1 => parameter_2,
+                    _ => panic!("Unknown parameter mode {}", parameter_2_mode),
+                };
+
+                if value_1 == 0 {
+                    self.ip = value_2 as usize;
+                }
+
+                true
+            }
+            7 => {
+                // Less than
+                let parameter_1_mode = (self.memory[self.ip] / 100) & 1;
+                let parameter_2_mode = (self.memory[self.ip] / 1000) & 1;
+
+                let parameter_1 = self.memory[self.ip + 1];
+                let parameter_2 = self.memory[self.ip + 2];
+                let parameter_3 = self.memory[self.ip + 3];
+                self.ip += 4;
+
+                let value_1 = match parameter_1_mode {
+                    0 => self.memory[parameter_1 as usize],
+                    1 => parameter_1,
+                    _ => panic!("Unknown parameter mode {}", parameter_1_mode),
+                };
+                let value_2 = match parameter_2_mode {
+                    0 => self.memory[parameter_2 as usize],
+                    1 => parameter_2,
+                    _ => panic!("Unknown parameter mode {}", parameter_2_mode),
+                };
+
+                self.memory[parameter_3 as usize] = if value_1 < value_2 { 1 } else { 0 };
+
+                true
+            }
+            8 => {
+                // Equal
+                let parameter_1_mode = (self.memory[self.ip] / 100) & 1;
+                let parameter_2_mode = (self.memory[self.ip] / 1000) & 1;
+
+                let parameter_1 = self.memory[self.ip + 1];
+                let parameter_2 = self.memory[self.ip + 2];
+                let parameter_3 = self.memory[self.ip + 3];
+                self.ip += 4;
+
+                let value_1 = match parameter_1_mode {
+                    0 => self.memory[parameter_1 as usize],
+                    1 => parameter_1,
+                    _ => panic!("Unknown parameter mode {}", parameter_1_mode),
+                };
+                let value_2 = match parameter_2_mode {
+                    0 => self.memory[parameter_2 as usize],
+                    1 => parameter_2,
+                    _ => panic!("Unknown parameter mode {}", parameter_2_mode),
+                };
+
+                self.memory[parameter_3 as usize] = if value_1 == value_2 { 1 } else { 0 };
 
                 true
             }
@@ -104,7 +214,10 @@ fn main() {
         .collect();
 
     // Part 1
-
     let mut program = Program::new(&integers);
     while program.run(1) {}
+
+    // Part 2
+    let mut program = Program::new(&integers);
+    while program.run(5) {}
 }
