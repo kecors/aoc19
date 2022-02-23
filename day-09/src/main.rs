@@ -405,7 +405,7 @@ impl Computer {
                 false
             }
             _ => {
-                unimplemented!();
+                panic!("Unknown opcode {}", self.get_opcode() % 100);
             }
         }
     }
@@ -431,5 +431,21 @@ fn main() {
     tx_computer.send(1).unwrap();
     while let Ok(keycode) = rx_master.recv() {
         println!("Part 1: the BOOST keycode is {}", keycode);
+    }
+
+    // Part 2
+
+    let (tx_computer, rx_computer) = channel();
+    let (tx_master, rx_master) = channel();
+
+    let mut computer = Computer::new(&program, rx_computer, tx_master, false);
+    thread::spawn(move || computer.run());
+
+    tx_computer.send(2).unwrap();
+    while let Ok(coordinates) = rx_master.recv() {
+        println!(
+            "Part 2: the coordinates of the distress signal are {}",
+            coordinates
+        );
     }
 }
