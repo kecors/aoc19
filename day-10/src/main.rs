@@ -163,13 +163,13 @@ impl Scanner {
             self.scan();
 
             self.vaporize_direction(Direction::Up);
-            self.vaporize_quadrant(Quadrant::UpperRight, false);
+            self.vaporize_quadrant(Quadrant::UpperRight);
             self.vaporize_direction(Direction::Right);
-            self.vaporize_quadrant(Quadrant::LowerRight, true);
+            self.vaporize_quadrant(Quadrant::LowerRight);
             self.vaporize_direction(Direction::Down);
-            self.vaporize_quadrant(Quadrant::LowerLeft, false);
+            self.vaporize_quadrant(Quadrant::LowerLeft);
             self.vaporize_direction(Direction::Left);
-            self.vaporize_quadrant(Quadrant::UpperLeft, true);
+            self.vaporize_quadrant(Quadrant::UpperLeft);
 
             if self
                 .neighbors
@@ -198,7 +198,7 @@ impl Scanner {
         }
     }
 
-    fn vaporize_quadrant(&mut self, quadrant: Quadrant, flip: bool) {
+    fn vaporize_quadrant(&mut self, quadrant: Quadrant) {
         let mut indexes = Vec::new();
         for (index, _neighbor) in self
             .neighbors
@@ -224,10 +224,13 @@ impl Scanner {
             let b_delta_y: f32 = self.neighbors[b].delta_y.abs() as f32;
             let b_ratio = b_delta_x / b_delta_y;
 
-            if flip {
-                b_ratio.partial_cmp(&a_ratio).unwrap()
-            } else {
-                a_ratio.partial_cmp(&b_ratio).unwrap()
+            match quadrant {
+                Quadrant::UpperRight | Quadrant::LowerLeft => {
+                    a_ratio.partial_cmp(&b_ratio).unwrap()
+                }
+                Quadrant::LowerRight | Quadrant::UpperLeft => {
+                    b_ratio.partial_cmp(&a_ratio).unwrap()
+                }
             }
         });
 
