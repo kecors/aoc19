@@ -1,0 +1,11 @@
+digit = { '0' .. '9' }
+sign = { "-" }
+value = { sign? ~ digit+ }
+
+x = { value }
+y = { value }
+z = { value }
+
+moon = _{ "<x=" ~ x ~ ", y=" ~ y ~ ", z=" ~ z ~ ">" ~ NEWLINE }
+
+main = _{ moon+ }
