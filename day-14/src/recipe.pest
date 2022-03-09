@@ -1,0 +1,15 @@
+digit = { '0' .. '9' }
+alpha = { 'A' .. 'Z' }
+
+ingredient_quantity = { digit+ }
+ingredient_chemical = { alpha+ }
+
+product_quantity = { digit+ }
+product_chemical = { alpha+ }
+
+ingredient = _{ ingredient_quantity ~ " " ~ ingredient_chemical ~ (", " ~ ingredient_quantity ~ " " ~ ingredient_chemical)* }
+product = _{ " => " ~ product_quantity ~ " " ~ product_chemical }
+
+recipe = _{ ingredient ~ product ~ NEWLINE }
+
+main = _{ recipe+ }
