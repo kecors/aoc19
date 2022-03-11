@@ -26,7 +26,7 @@ impl Relation {
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Ingredient {
     chemical: String,
-    quantity: u32,
+    quantity: u64,
 }
 
 impl fmt::Display for Ingredient {
@@ -36,7 +36,7 @@ impl fmt::Display for Ingredient {
 }
 
 impl Ingredient {
-    fn new(chemical: String, quantity: u32) -> Ingredient {
+    fn new(chemical: String, quantity: u64) -> Ingredient {
         Ingredient { chemical, quantity }
     }
 }
@@ -44,7 +44,7 @@ impl Ingredient {
 #[derive(Debug)]
 struct Recipe {
     ingredients: Vec<Ingredient>,
-    product_quantity: u32,
+    product_quantity: u64,
 }
 
 impl fmt::Display for Recipe {
@@ -96,13 +96,13 @@ impl Nanofactory {
 
             match rule {
                 Rule::ingredient_quantity => {
-                    ingredient_quantity = text.parse::<u32>().unwrap();
+                    ingredient_quantity = text.parse::<u64>().unwrap();
                 }
                 Rule::ingredient_chemical => {
                     ingredients.push(Ingredient::new(text.clone(), ingredient_quantity));
                 }
                 Rule::product_quantity => {
-                    product_quantity = text.parse::<u32>().unwrap();
+                    product_quantity = text.parse::<u64>().unwrap();
                 }
                 Rule::product_chemical => {
                     let recipe = Recipe {
@@ -160,11 +160,11 @@ impl Nanofactory {
         reduction_order
     }
 
-    fn reduce(&mut self) -> u32 {
+    fn reduce(&mut self, fuel_requirement: u64) -> u64 {
         let reduction_order = self.determine_reduction_order();
 
-        let mut workspace: HashMap<String, u32> = HashMap::new();
-        workspace.insert(String::from("FUEL"), 1);
+        let mut workspace: HashMap<String, u64> = HashMap::new();
+        workspace.insert(String::from("FUEL"), fuel_requirement);
 
         for chemical in reduction_order.iter() {
             if let Some(quantity) = workspace.remove(chemical) {
@@ -187,7 +187,26 @@ impl Nanofactory {
         if let Some(&quantity) = workspace.get("ORE") {
             quantity
         } else {
-            panic!("Reduction did not product ORE");
+            panic!("Reduction did not produce ORE");
+        }
+    }
+
+    fn consume_maximum_ore_below(&mut self, limit: u64) -> u64 {
+        let mut base = 0;
+        let mut offset = 1;
+
+        loop {
+            let ore_consumed = self.reduce(base + offset);
+            if ore_consumed > limit {
+                if offset == 1 {
+                    return base;
+                } else {
+                    base += offset / 2;
+                    offset = 1;
+                }
+            } else {
+                offset *= 2;
+            }
         }
     }
 }
@@ -199,6 +218,11 @@ fn main() {
     let mut nanofactory = Nanofactory::new(&input);
     println!(
         "Part 1: the minimum amount of ore is {}",
-        nanofactory.reduce()
+        nanofactory.reduce(1)
+    );
+
+    println!(
+        "Part 2: the maximum amout of fuel is {}",
+        nanofactory.consume_maximum_ore_below(1_000_000_000_000)
     );
 }
