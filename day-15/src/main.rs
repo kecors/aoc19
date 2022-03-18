@@ -2,7 +2,7 @@ mod computer;
 
 use computer::Computer;
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::io::{stdin, Read};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -140,7 +140,14 @@ impl Map {
         (x_min, x_max, y_min, y_max)
     }
 
-    #[allow(dead_code)]
+    // Note that this function will leave visit values for Place::Open
+    // in an arbitrary and unuseful state
+    fn combine(&mut self, other: &Self) {
+        for (&position, &place) in other.places.iter() {
+            self.places.insert(position, place);
+        }
+    }
+
     fn oxygen_system(&self) -> Position {
         if let Some((position, _place)) = self
             .places
@@ -151,6 +158,18 @@ impl Map {
         } else {
             panic!("Oxygen system not located");
         }
+    }
+
+    fn open_positions(&self) -> HashSet<Position> {
+        let mut open_positions = HashSet::new();
+
+        for (&position, &place) in self.places.iter() {
+            if let Place::Open(_) = place {
+                open_positions.insert(position);
+            }
+        }
+
+        open_positions
     }
 }
 
@@ -324,5 +343,42 @@ fn main() {
     println!(
         "Part 1: the fewest number of movement commands is {}",
         explorer.fewest_movement_commands()
+    );
+
+    // Part 2
+
+    use crate::Direction::*;
+
+    let mut complete_map = Map::new();
+
+    for direction in [North, South, West, East] {
+        let mut explorer = Explorer::new(&program, direction);
+        explorer.explore();
+        complete_map.combine(&explorer.map);
+    }
+
+    let mut minutes = 0;
+    let mut open_positions = complete_map.open_positions();
+    let mut vanguard_positions = vec![complete_map.oxygen_system()];
+
+    while !open_positions.is_empty() {
+        let mut new_vanguard_positions = Vec::new();
+
+        while let Some(position) = vanguard_positions.pop() {
+            for direction in [North, South, West, East] {
+                let neighbor = position.neighbor(direction);
+                if open_positions.remove(&neighbor) {
+                    new_vanguard_positions.push(neighbor);
+                }
+            }
+        }
+
+        minutes += 1;
+        vanguard_positions = new_vanguard_positions;
+    }
+
+    println!(
+        "Part 2: it will take {} minutes to fill with oxygen",
+        minutes
     );
 }
